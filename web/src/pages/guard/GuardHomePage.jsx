@@ -72,13 +72,15 @@ export default function GuardHomePage() {
         <Tile icon="user" label="Residents" onClick={() => navigate('/guard/residents')} />
       </div>
 
-      {expected.length > 0 && (
-        <div style={styles.section}>
-          <div style={styles.sectionHead}>
-            <Icon name="users" size={16} color="var(--color-text-secondary)" />
-            <h3 style={styles.sectionTitle}>Expected Visitors</h3>
-          </div>
-          {expected.map(e => (
+      <div style={styles.section}>
+        <div style={styles.sectionHead}>
+          <Icon name="users" size={16} color="var(--color-text-secondary)" />
+          <h3 style={styles.sectionTitle}>Expected Visitors</h3>
+        </div>
+        {expected.length === 0 ? (
+          <div style={styles.emptyState}>No expected visitors right now.</div>
+        ) : (
+          expected.map(e => (
             <div key={e.id} className="card" style={styles.expectedCard} onClick={() => navigate('/guard/new-visitor')}>
               <div style={styles.expectedAvatar}><Icon name="user" size={20} color="var(--color-primary)" /></div>
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -87,9 +89,9 @@ export default function GuardHomePage() {
               </div>
               <div style={styles.expectedPhone}>{e.visitor_phone}</div>
             </div>
-          ))}
-        </div>
-      )}
+          ))
+        )}
+      </div>
     </div>
   );
 }
@@ -151,4 +153,5 @@ const styles = {
   expectedName: { fontWeight: 600, fontSize: 15, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
   expectedMeta: { fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 2 },
   expectedPhone: { fontSize: 12, color: 'var(--color-text-secondary)', fontFamily: 'var(--font-mono)', flexShrink: 0 },
+  emptyState: { padding: '18px 16px', textAlign: 'center', fontSize: 14, color: 'var(--color-text-secondary)', background: 'var(--color-surface)', border: '1px dashed var(--color-border)', borderRadius: 12 },
 };

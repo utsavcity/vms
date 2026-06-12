@@ -83,6 +83,13 @@ input:focus, textarea:focus, select:focus {
 input::placeholder, textarea::placeholder { color: var(--color-text-secondary); }
 input[readonly] { background: var(--color-surface-elevated); }
 
+/* Phone field: highlight the whole +91 box on focus (not the inner input alone) */
+.phone-input-field:focus { box-shadow: none; border-color: transparent; }
+.phone-input-wrap:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(79, 142, 247, 0.2);
+}
+
 button {
   cursor: pointer;
   font-family: var(--font-body);

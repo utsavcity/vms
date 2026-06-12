@@ -46,6 +46,39 @@ async function getPendingApprovals(resident) {
   return data;
 }
 
+async function getFamilyMembers(resident) {
+  // Active members of this flat (the family head themselves is excluded).
+  const { data, error } = await supabase
+    .from('users')
+    .select('id, name, phone, role')
+    .eq('flat_id', resident.flat_id)
+    .eq('role', 'member')
+    .eq('is_active', true)
+    .order('name', { ascending: true });
+  if (error) throw error;
+  return data;
+}
+
+async function getKnownVisitors(resident) {
+  // People who have visited this flat before, de-duplicated by phone (most recent first).
+  const { data, error } = await supabase
+    .from('visitors')
+    .select('name, phone, created_at')
+    .eq('flat_id', resident.flat_id)
+    .order('created_at', { ascending: false })
+    .limit(100);
+  if (error) throw error;
+  const seen = new Set();
+  const unique = [];
+  for (const v of data || []) {
+    if (v.phone && !seen.has(v.phone)) {
+      seen.add(v.phone);
+      unique.push({ name: v.name, phone: v.phone, last_visited: v.created_at });
+    }
+  }
+  return unique.slice(0, 20);
+}
+
 async function addFamilyMember(headResident, memberData) {
   if (headResident.role !== 'family_head') {
     throw Object.assign(new Error('Only family head can add members'), { status: 403, code: 'FORBIDDEN' });
@@ -125,6 +158,8 @@ module.exports = {
   approveVisitorRequest,
   denyVisitorRequest,
   getPendingApprovals,
+  getFamilyMembers,
+  getKnownVisitors,
   addFamilyMember,
   removeFamilyMember,
   updateNotificationPreference,

@@ -37,6 +37,24 @@ async function getPending(req, res, next) {
   }
 }
 
+async function getFamily(req, res, next) {
+  try {
+    const members = await residentService.getFamilyMembers(req.resident);
+    res.json({ success: true, data: members });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function getKnownVisitors(req, res, next) {
+  try {
+    const visitors = await residentService.getKnownVisitors(req.resident);
+    res.json({ success: true, data: visitors });
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function addMember(req, res, next) {
   try {
     const member = await residentService.addFamilyMember(req.resident, req.body);
@@ -64,4 +82,4 @@ async function updateNotifications(req, res, next) {
   }
 }
 
-module.exports = { resolveResident, approveVisitor, denyVisitor, getPending, addMember, removeMember, updateNotifications };
+module.exports = { resolveResident, approveVisitor, denyVisitor, getPending, getFamily, getKnownVisitors, addMember, removeMember, updateNotifications };

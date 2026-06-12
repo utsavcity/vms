@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import api from '../../services/api';
+import PhoneInput from '../../components/shared/PhoneInput';
 
 export default function GuardsPage() {
   const [guards, setGuards] = useState([]);
@@ -24,7 +25,8 @@ export default function GuardsPage() {
 
   async function addGuard(e) {
     e.preventDefault();
-    if (!newName.trim() || !newPhone.trim()) { setError('Name and phone required.'); return; }
+    if (!newName.trim()) { setError('Name is required.'); return; }
+    if (!/^\+91[6-9]\d{9}$/.test(newPhone)) { setError('Enter a valid 10-digit mobile number.'); return; }
     setAdding(true);
     setError('');
     try {
@@ -110,8 +112,8 @@ export default function GuardsPage() {
                 <input value={newName} onChange={e => setNewName(e.target.value)} placeholder="Guard name" required autoFocus />
               </div>
               <div>
-                <label style={styles.label}>Phone (+91XXXXXXXXXX)</label>
-                <input value={newPhone} onChange={e => setNewPhone(e.target.value)} placeholder="+91 98765 43210" required />
+                <label style={styles.label}>Phone</label>
+                <PhoneInput value={newPhone} onChange={setNewPhone} required />
               </div>
               {error && <p style={{ color: 'var(--color-rejected)', fontSize: 13 }}>{error}</p>}
               <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>

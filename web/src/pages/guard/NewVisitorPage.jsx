@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import { useCamera } from '../../hooks/useCamera';
 import Icon from '../../components/shared/Icon';
+import PhoneInput from '../../components/shared/PhoneInput';
 
 const PURPOSES = ['Meeting', 'Courier', 'Service', 'Other'];
 
@@ -36,7 +37,7 @@ export default function NewVisitorPage() {
 
   async function lookupPhone(e) {
     e.preventDefault();
-    if (!/^\+91[6-9]\d{9}$/.test(phone)) { setError('Enter a valid Indian number: +91XXXXXXXXXX'); return; }
+    if (!/^\+91[6-9]\d{9}$/.test(phone)) { setError('Enter a valid 10-digit mobile number.'); return; }
     setError('');
     setLoading(true);
     try {
@@ -116,7 +117,7 @@ export default function NewVisitorPage() {
 
       {step === 1 && (
         <form onSubmit={lookupPhone} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+91 98765 43210" autoFocus />
+          <PhoneInput value={phone} onChange={setPhone} autoFocus />
           {error && <p style={styles.error}>{error}</p>}
           <button type="submit" disabled={loading} style={styles.primaryBtn}>{loading ? 'Looking up...' : 'Look Up'}</button>
         </form>
