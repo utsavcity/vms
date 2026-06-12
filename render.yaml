@@ -1,0 +1,40 @@
+# Render Blueprint — deploys the Utsav City VMS backend API (free tier).
+# The frontend PWA deploys separately on Vercel (see DEPLOYMENT.md).
+services:
+  - type: web
+    name: utsav-vms-api
+    runtime: node
+    rootDir: backend
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true        # Render auto-generates a strong secret
+      - key: VAPID_EMAIL
+        value: mailto:admin@utsavcity.com
+      # The values below are secrets — set them in the Render dashboard.
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: WEB_BASE_URL
+        sync: false                # e.g. https://utsav-city.vercel.app
+      - key: ALLOWED_ORIGINS
+        sync: false                # e.g. https://utsav-city.vercel.app
+      # Optional — leave unset to disable WhatsApp/SMS (the app degrades gracefully).
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: TWILIO_PHONE_NUMBER
+        sync: false
+      - key: TWILIO_WHATSAPP_NUMBER
+        sync: false
