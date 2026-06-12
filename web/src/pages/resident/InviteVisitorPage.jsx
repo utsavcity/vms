@@ -10,6 +10,8 @@ export default function InviteVisitorPage() {
   const [known, setKnown] = useState([]);
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+  const [link, setLink] = useState('');
+  const [copied, setCopied] = useState(false);
   const [error, setError] = useState('');
 
   function set(key, value) { setForm(prev => ({ ...prev, [key]: value })); }
@@ -25,12 +27,13 @@ export default function InviteVisitorPage() {
     setError('');
     setLoading(true);
     try {
-      await api.post('/api/preregistrations', {
+      const res = await api.post('/api/preregistrations', {
         visitor_name: form.name,
         visitor_phone: form.phone,
         expected_date: form.date,
         expected_time: form.time || undefined,
       });
+      setLink(res.data.data?.link || '');
       setDone(true);
     } catch (err) {
       setError(err.response?.data?.error?.message || 'Failed to send invite.');
@@ -39,15 +42,38 @@ export default function InviteVisitorPage() {
   }
 
   if (done) {
+    const waText = encodeURIComponent(
+      `You are invited to visit Utsav City. Please fill in your details before arriving so the gate can let you in quickly:\n${link}`
+    );
+    const waUrl = `https://wa.me/${form.phone.replace('+', '')}?text=${waText}`;
+
+    async function copyLink() {
+      try {
+        await navigator.clipboard.writeText(link);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch {}
+    }
+
     return (
       <div style={styles.success}>
         <Icon name="mail" size={64} color="var(--color-approved)" />
-        <h2 style={{ fontSize: 24, color: '#15803D' }}>Invite Sent</h2>
+        <h2 style={{ fontSize: 24, color: '#15803D' }}>Invite Created</h2>
         <p style={{ color: 'var(--color-text-secondary)', textAlign: 'center' }}>
-          A WhatsApp link has been sent to {form.phone}.<br />
-          Your visitor should fill in their details before arriving.
+          Send {form.name} their registration link. They fill in their details and a selfie,
+          and the guard will let them straight in on arrival.
         </p>
-        <button onClick={() => navigate('/resident')} style={styles.primaryBtn}>Done</button>
+        {link && (
+          <>
+            <a href={waUrl} target="_blank" rel="noreferrer" style={styles.waBtn}>
+              Share on WhatsApp
+            </a>
+            <button onClick={copyLink} style={styles.copyBtn}>
+              {copied ? 'Copied' : 'Copy Link'}
+            </button>
+          </>
+        )}
+        <button onClick={() => navigate('/resident')} style={styles.doneBtn}>Done</button>
       </div>
     );
   }
@@ -113,4 +139,7 @@ const styles = {
   knownList: { display: 'flex', flexWrap: 'wrap', gap: 8 },
   knownChip: { display: 'inline-flex', alignItems: 'center', gap: 6, width: 'auto', padding: '8px 14px', borderRadius: 9999, border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-text-primary)', fontSize: 14 },
   knownChipActive: { background: 'var(--color-primary)', borderColor: 'var(--color-primary)', color: '#fff' },
+  waBtn: { display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', maxWidth: 400, height: 52, background: '#25D366', color: '#fff', borderRadius: 8, fontWeight: 600, fontSize: 16, textDecoration: 'none' },
+  copyBtn: { background: 'var(--color-surface)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border)', height: 52 },
+  doneBtn: { background: 'var(--color-primary)', color: '#fff', height: 52 },
 };

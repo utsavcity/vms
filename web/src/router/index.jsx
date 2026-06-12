@@ -4,6 +4,8 @@ import { useAuth, homeForRole } from '../hooks/useAuth';
 import BottomNav from '../components/shared/BottomNav';
 
 import LoginPage from '../pages/LoginPage';
+import ForgotPasswordPage from '../pages/ForgotPasswordPage';
+import ResetPasswordPage from '../pages/ResetPasswordPage';
 
 // Guard
 import GuardHomePage from '../pages/guard/GuardHomePage';
@@ -91,6 +93,8 @@ export default function AppRouter() {
     <Routes>
       <Route path="/" element={<RootRedirect />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
 
       {/* Guard app */}
       <Route path="/guard" element={<RequireRole roles={['guard']}><GuardShell /></RequireRole>}>

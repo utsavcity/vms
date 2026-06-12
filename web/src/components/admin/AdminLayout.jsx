@@ -16,7 +16,6 @@ export default function AdminLayout({ children }) {
 
   async function handleSignOut() {
     await supabase.auth.signOut();
-    localStorage.removeItem('utsav_admin_token');
     navigate('/admin/login');
   }
 

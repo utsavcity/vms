@@ -81,7 +81,7 @@ export default function GuardHomePage() {
           <div style={styles.emptyState}>No expected visitors right now.</div>
         ) : (
           expected.map(e => (
-            <div key={e.id} className="card" style={styles.expectedCard} onClick={() => navigate('/guard/new-visitor')}>
+            <div key={e.id} className="card" style={styles.expectedCard} onClick={() => navigate('/guard/new-visitor', { state: { phone: e.visitor_phone, name: e.visitor_name } })}>
               <div style={styles.expectedAvatar}><Icon name="user" size={20} color="var(--color-primary)" /></div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={styles.expectedName}>{e.visitor_name}</div>

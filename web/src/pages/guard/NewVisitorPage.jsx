@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../../services/api';
 import { useCamera } from '../../hooks/useCamera';
 import Icon from '../../components/shared/Icon';
@@ -10,9 +10,10 @@ const PURPOSES = ['Meeting', 'Courier', 'Service', 'Other'];
 // Same 3-step flow as the mobile app: phone lookup → details + photo → submit.
 export default function NewVisitorPage() {
   const navigate = useNavigate();
+  const { state } = useLocation(); // pre-filled from the Expected Visitors list
   const [step, setStep] = useState(1);
-  const [phone, setPhone] = useState('');
-  const [name, setName] = useState('');
+  const [phone, setPhone] = useState(state?.phone || '');
+  const [name, setName] = useState(state?.name || '');
   const [flatId, setFlatId] = useState(null);
   const [flatSearch, setFlatSearch] = useState('');
   const [purpose, setPurpose] = useState('Meeting');

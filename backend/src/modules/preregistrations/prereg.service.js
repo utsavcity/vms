@@ -111,6 +111,7 @@ async function submitPreRegistrationForm(token, formData) {
     if (buffer.length > 307200) {
       throw Object.assign(new Error('Photo exceeds 300KB limit'), { status: 400, code: 'PHOTO_TOO_LARGE' });
     }
+    require('../visitors/visitor.service').assertJpeg(buffer);
     const filename = `visitor-photos/prereg-${prereg.id}.jpg`;
     const { error: uploadErr } = await supabase.storage
       .from('visitor-photos')

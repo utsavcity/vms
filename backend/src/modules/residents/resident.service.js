@@ -84,13 +84,23 @@ async function addFamilyMember(headResident, memberData) {
     throw Object.assign(new Error('Only family head can add members'), { status: 403, code: 'FORBIDDEN' });
   }
 
-  // Create Supabase Auth account for the new member
+  if (!memberData.password || memberData.password.length < 6) {
+    throw Object.assign(new Error('Password must be at least 6 characters'), { status: 400, code: 'WEAK_PASSWORD' });
+  }
+
+  // Create Supabase Auth account with a password so the member can sign in
   const { data: authData, error: authError } = await supabase.auth.admin.createUser({
     phone: memberData.phone,
+    password: memberData.password,
     user_metadata: { role: 'member', name: memberData.name },
     phone_confirm: true,
   });
-  if (authError) throw authError;
+  if (authError) {
+    const friendly = /already|registered|exists/i.test(authError.message)
+      ? 'This phone number already has an account.'
+      : authError.message;
+    throw Object.assign(new Error(friendly), { status: 400, code: 'AUTH_ERROR' });
+  }
 
   const { data: user, error } = await supabase
     .from('users')

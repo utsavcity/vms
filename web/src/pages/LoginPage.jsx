@@ -45,6 +45,7 @@ export default function LoginPage() {
         </button>
       </form>
 
+      <Link to="/forgot-password" style={styles.adminLink}>Forgot password?</Link>
       <Link to="/admin/login" style={styles.adminLink}>Admin? Sign in here</Link>
     </div>
   );

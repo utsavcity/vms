@@ -32,7 +32,6 @@ export async function signIn(identifier, password) {
 
 export async function signOut() {
   await supabase.auth.signOut();
-  localStorage.removeItem('utsav_admin_token');
 }
 
 // Where each role lands after login

@@ -7,7 +7,7 @@ export default function FamilyManagementPage() {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ name: '', phone: '' });
+  const [form, setForm] = useState({ name: '', phone: '', password: '' });
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState('');
 
@@ -25,12 +25,13 @@ export default function FamilyManagementPage() {
   async function addMember(e) {
     e.preventDefault();
     if (!/^\+91[6-9]\d{9}$/.test(form.phone)) { setError('Enter a valid 10-digit mobile number.'); return; }
+    if (form.password.length < 6) { setError('Password must be at least 6 characters.'); return; }
     setError('');
     setAdding(true);
     try {
-      const res = await api.post('/api/residents/family', { name: form.name, phone: form.phone });
+      const res = await api.post('/api/residents/family', { name: form.name, phone: form.phone, password: form.password });
       setMembers(prev => [...prev, res.data.data]);
-      setForm({ name: '', phone: '' });
+      setForm({ name: '', phone: '', password: '' });
       setShowForm(false);
     } catch (err) {
       setError(err.response?.data?.error?.message || 'Failed to add member.');
@@ -74,6 +75,8 @@ export default function FamilyManagementPage() {
         <form onSubmit={addMember} className="card" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder="Full name" required autoFocus />
           <PhoneInput value={form.phone} onChange={v => setForm(p => ({ ...p, phone: v }))} required />
+          <input type="password" value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} placeholder="Set their password (min 6 characters)" required />
+          <p style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>They will sign in with their phone number and this password. Share it with them privately.</p>
           {error && <p style={{ color: 'var(--color-rejected)', fontSize: 14 }}>{error}</p>}
           <div style={{ display: 'flex', gap: 8 }}>
             <button type="button" className="btn-inline" onClick={() => setShowForm(false)} style={{ flex: 1, background: 'var(--color-surface-elevated)', color: 'var(--color-text-secondary)' }}>Cancel</button>

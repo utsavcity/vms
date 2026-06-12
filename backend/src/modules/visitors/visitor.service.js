@@ -3,6 +3,13 @@ const { sendSMS, sendWhatsApp } = require('../../config/twilio');
 const QRCode = require('qrcode');
 const crypto = require('crypto');
 
+// JPEG files start with FF D8 FF — reject anything else masquerading as a photo
+function assertJpeg(buffer) {
+  if (buffer.length < 3 || buffer[0] !== 0xFF || buffer[1] !== 0xD8 || buffer[2] !== 0xFF) {
+    throw Object.assign(new Error('Photo must be a JPEG image'), { status: 400, code: 'INVALID_PHOTO' });
+  }
+}
+
 // Upload base64 photo to Supabase Storage — returns public URL
 async function uploadVisitorPhoto(base64Data, visitorId) {
   const buffer = Buffer.from(base64Data.replace(/^data:image\/\w+;base64,/, ''), 'base64');
@@ -11,6 +18,7 @@ async function uploadVisitorPhoto(base64Data, visitorId) {
   if (buffer.length > 307200) {
     throw Object.assign(new Error('Photo exceeds 300KB limit after compression'), { status: 400, code: 'PHOTO_TOO_LARGE' });
   }
+  assertJpeg(buffer);
 
   const filename = `visitor-photos/${visitorId}.jpg`;
   const { error } = await supabase.storage
@@ -362,4 +370,5 @@ module.exports = {
   markExitByQR,
   getActiveVisitors,
   notifyResidents,
+  assertJpeg,
 };

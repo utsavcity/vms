@@ -6,11 +6,10 @@ const api = axios.create({
   timeout: 30000,
 });
 
-// Attach the Supabase session token (guard/resident/admin); fall back to the
-// legacy admin localStorage token.
+// Attach the Supabase session token (guard/resident/admin)
 api.interceptors.request.use(async (config) => {
   const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token || localStorage.getItem('utsav_admin_token');
+  const token = data.session?.access_token;
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
@@ -19,7 +18,6 @@ api.interceptors.response.use(
   (r) => r,
   async (err) => {
     if (err.response?.status === 401) {
-      localStorage.removeItem('utsav_admin_token');
       await supabase.auth.signOut().catch(() => {});
       window.location.href = '/login';
     }

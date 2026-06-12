@@ -24,7 +24,6 @@ export default function AdminLoginPage() {
         throw new Error('Access restricted to administrators only.');
       }
 
-      localStorage.setItem('utsav_admin_token', data.session.access_token);
       navigate('/admin');
     } catch (err) {
       setError(err.message || 'Login failed. Please check your credentials.');
