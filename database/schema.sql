@@ -253,9 +253,12 @@ create policy "notifications_update_own" on notifications for update
     or recipient_id = (select id from admins where supabase_auth_id = auth.uid() limit 1)
   );
 
--- Pre-registrations: residents can read their own flat's
+-- Pre-registrations: residents can read their own flat's; guards can read all (expected-visitors list)
 create policy "prereg_resident_read" on pre_registrations for select
   using (flat_id in (select flat_id from users where supabase_auth_id = auth.uid() and is_active = true));
+
+create policy "prereg_guard_read" on pre_registrations for select
+  using (exists (select 1 from guards where supabase_auth_id = auth.uid() and is_active = true));
 
 -- Overstay alerts: guards can read
 create policy "overstay_guard_read" on overstay_alerts for select
@@ -267,5 +270,5 @@ create policy "overstay_guard_read" on overstay_alerts for select
 
 begin;
   drop publication if exists supabase_realtime;
-  create publication supabase_realtime for table visitors, notifications, overstay_alerts;
+  create publication supabase_realtime for table visitors, notifications, overstay_alerts, pre_registrations;
 commit;

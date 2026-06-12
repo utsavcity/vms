@@ -29,6 +29,15 @@ async function getActiveVisitors(req, res, next) {
   }
 }
 
+async function getExpectedVisitors(req, res, next) {
+  try {
+    const data = await guardService.getExpectedVisitors();
+    res.json({ success: true, data });
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function removeTenant(req, res, next) {
   try {
     const { reason } = req.body;
@@ -40,4 +49,4 @@ async function removeTenant(req, res, next) {
   }
 }
 
-module.exports = { resolveGuard, searchResidents, getActiveVisitors, removeTenant };
+module.exports = { resolveGuard, searchResidents, getActiveVisitors, getExpectedVisitors, removeTenant };

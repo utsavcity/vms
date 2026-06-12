@@ -5,12 +5,14 @@ import { useRealtime } from '../../hooks/useRealtime';
 import { usePushNotifications } from '../../hooks/usePushNotifications';
 import { supabase } from '../../services/supabase';
 import { signOut } from '../../hooks/useAuth';
+import api from '../../services/api';
 import Icon from '../../components/shared/Icon';
 
 export default function GuardHomePage() {
   const navigate = useNavigate();
   const { name } = useAuth();
   const [pendingCount, setPendingCount] = useState(0);
+  const [expected, setExpected] = useState([]);
   const { status: pushStatus, subscribe } = usePushNotifications();
 
   // Initial pending count via RLS (guards can read visitors directly)
@@ -22,10 +24,19 @@ export default function GuardHomePage() {
     setPendingCount(count || 0);
   }, []);
 
-  useEffect(() => { refreshCount(); }, [refreshCount]);
+  // Visitors a resident has invited but who haven't arrived yet
+  const refreshExpected = useCallback(async () => {
+    try {
+      const res = await api.get('/api/guards/expected-visitors');
+      setExpected(res.data.data || []);
+    } catch {}
+  }, []);
 
-  // Live updates: any visitor insert/update can change the pending count
+  useEffect(() => { refreshCount(); refreshExpected(); }, [refreshCount, refreshExpected]);
+
+  // Live updates: visitor changes refresh the count; new invites refresh the expected list
   useRealtime('visitors', '*', refreshCount);
+  useRealtime('pre_registrations', '*', refreshExpected);
 
   return (
     <div style={styles.page}>
@@ -60,8 +71,40 @@ export default function GuardHomePage() {
         <Tile icon="exit" label="Mark Exit" onClick={() => navigate('/guard/exit')} />
         <Tile icon="user" label="Residents" onClick={() => navigate('/guard/residents')} />
       </div>
+
+      {expected.length > 0 && (
+        <div style={styles.section}>
+          <div style={styles.sectionHead}>
+            <Icon name="users" size={16} color="var(--color-text-secondary)" />
+            <h3 style={styles.sectionTitle}>Expected Visitors</h3>
+          </div>
+          {expected.map(e => (
+            <div key={e.id} className="card" style={styles.expectedCard} onClick={() => navigate('/guard/new-visitor')}>
+              <div style={styles.expectedAvatar}><Icon name="user" size={20} color="var(--color-primary)" /></div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={styles.expectedName}>{e.visitor_name}</div>
+                <div style={styles.expectedMeta}>Flat {e.flats?.flat_number || '?'} · {whenLabel(e)}</div>
+              </div>
+              <div style={styles.expectedPhone}>{e.visitor_phone}</div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
+}
+
+// "Today, 6:30 PM" / "Today" / "12 Jun" depending on what the resident set
+function whenLabel(e) {
+  const istToday = new Date(Date.now() + 5.5 * 3600 * 1000).toISOString().slice(0, 10);
+  const dayPart = e.expected_date === istToday
+    ? 'Today'
+    : new Date(e.expected_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+  if (!e.expected_time) return dayPart;
+  const [h, m] = e.expected_time.split(':');
+  const hr = ((+h + 11) % 12) + 1;
+  const ampm = +h < 12 ? 'AM' : 'PM';
+  return `${dayPart}, ${hr}:${m} ${ampm}`;
 }
 
 function Tile({ icon, label, onClick }) {
@@ -100,4 +143,12 @@ const styles = {
   },
   tileIcon: { width: 44, height: 44, borderRadius: 10, background: 'rgba(79,142,247,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   tileLabel: { fontSize: 14, fontWeight: 600, color: 'var(--color-text-primary)' },
+  section: { marginTop: 8, display: 'flex', flexDirection: 'column', gap: 8 },
+  sectionHead: { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 },
+  sectionTitle: { fontSize: 15, fontWeight: 600, color: 'var(--color-text-secondary)' },
+  expectedCard: { display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', padding: 12 },
+  expectedAvatar: { width: 40, height: 40, borderRadius: '50%', background: 'rgba(79,142,247,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  expectedName: { fontWeight: 600, fontSize: 15, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
+  expectedMeta: { fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 2 },
+  expectedPhone: { fontSize: 12, color: 'var(--color-text-secondary)', fontFamily: 'var(--font-mono)', flexShrink: 0 },
 };

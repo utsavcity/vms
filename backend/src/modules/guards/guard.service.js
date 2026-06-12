@@ -33,6 +33,22 @@ async function getActiveVisitors() {
   return data;
 }
 
+async function getExpectedVisitors() {
+  // Pre-registrations a resident has invited but who haven't been let in yet.
+  // Show today's and upcoming ones (drop past dates). Date floored to IST.
+  const istToday = new Date(Date.now() + 5.5 * 3600 * 1000).toISOString().slice(0, 10);
+  const { data, error } = await supabase
+    .from('pre_registrations')
+    .select('id, visitor_name, visitor_phone, expected_date, expected_time, flat_id, flats(flat_number)')
+    .eq('status', 'pending')
+    .gte('expected_date', istToday)
+    .order('expected_date', { ascending: true })
+    .order('expected_time', { ascending: true, nullsFirst: true })
+    .limit(50);
+  if (error) throw error;
+  return data;
+}
+
 async function removeTenant(userId, guardId, reason) {
   // Fetch user info
   const { data: user, error: fetchErr } = await supabase
@@ -128,4 +144,4 @@ async function removeTenant(userId, guardId, reason) {
   return { removed: userId, flatVacated: !remaining || remaining.length === 0 };
 }
 
-module.exports = { getGuardByAuthId, searchResidents, getActiveVisitors, removeTenant };
+module.exports = { getGuardByAuthId, searchResidents, getActiveVisitors, getExpectedVisitors, removeTenant };
