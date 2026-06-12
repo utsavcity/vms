@@ -20,10 +20,35 @@ const adminRoutes = require('./modules/admin/admin.routes');
 // Background jobs
 require('./jobs/overstayMonitor');
 
+const rateLimit = require('express-rate-limit');
+
 const app = express();
 
+// Behind Render's proxy — needed so rate limiting sees real client IPs
+app.set('trust proxy', 1);
+
 app.use(helmet());
-app.use(cors({ origin: process.env.ALLOWED_ORIGINS?.split(',') || '*' }));
+
+// Basic abuse protection: 300 requests per 15 min per IP
+app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 300, standardHeaders: true, legacyHeaders: false }));
+
+// CORS — tolerant of trailing slashes and Vercel preview URLs.
+// Auth is via Bearer token (no cookies), so a permissive CORS policy is safe.
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || '')
+  .split(',')
+  .map(o => o.trim().replace(/\/$/, ''))
+  .filter(Boolean);
+
+app.use(cors({
+  origin(origin, cb) {
+    if (!origin) return cb(null, true);                 // non-browser / same-origin
+    const clean = origin.replace(/\/$/, '');
+    if (allowedOrigins.length === 0) return cb(null, true); // no allowlist set -> allow all
+    if (allowedOrigins.includes(clean)) return cb(null, true);
+    if (clean.endsWith('.vercel.app')) return cb(null, true); // any deploy of this app
+    return cb(null, false);
+  },
+}));
 app.use(compression());
 app.use(express.json({ limit: '5mb' })); // allow base64 photo uploads
 app.use(morgan('combined'));
