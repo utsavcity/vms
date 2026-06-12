@@ -14,3 +14,6 @@ build/
 # OS
 .DS_Store
 Thumbs.db
+
+# Keep the business plan local only
+SAAS_BUSINESS_PLAN.md
